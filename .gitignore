@@ -1,0 +1,61 @@
+#参考别人的感觉能用
+# output dir
+output
+instant_test_output
+inference_test_output
+
+
+*.json
+*.diff
+!/projects/DensePose/doc/images/*.jpg
+自己write/ny
+自己write/douyin
+自己write/pngTXT
+
+上课/
+student管理系统/
+模块/
+
+下载别人的
+.mp4
+# compilation and distribution
+__pycache__
+_ext
+*.pyc
+*.pyd
+*.so
+*.dll
+*.egg-info/
+build/
+dist/
+wheels/
+
+# pytorch/python/numpy formats
+*.pth
+*.pkl
+*.npy
+*.ts
+
+# ipython/jupyter notebooks
+*.ipynb
+**/.ipynb_checkpoints/
+
+# Editor temporaries
+*.swn
+*.swo
+*.swp
+*~
+
+# editor settings
+.idea
+.git
+.vscode
+_darcs
+
+# project dirs
+/detectron2/model_zoo/configs
+/datasets/*
+!/datasets/*.*
+/projects/*/datasets
+/models
+/snippet
