@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Awesome-pyecharts</title>
+            <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+        <script type="text/javascript" src="https://assets.pyecharts.org/assets/maps/world.js"></script>
+
+</head>
+<body>
+    <div id="b3da9bc10cd042438f013f58fe019736" class="chart-container" style="width:1900px; height:900px;"></div>
+    <script>
+        var chart_b3da9bc10cd042438f013f58fe019736 = echarts.init(
+            document.getElementById('b3da9bc10cd042438f013f58fe019736'), 'white', {renderer: 'canvas'});
+        var option_b3da9bc10cd042438f013f58fe019736 = {
+    "backgroundColor": "#ADD8E6",
+    "animation": true,
+    "animationThreshold": 2000,
+    "animationDuration": 1000,
+    "animationEasing": "cubicOut",
+    "animationDelay": 0,
+    "animationDurationUpdate": 300,
+    "animationEasingUpdate": "cubicOut",
+    "animationDelayUpdate": 0,
+    "color": [
+        "#c23531",
+        "#2f4554",
+        "#61a0a8",
+        "#d48265",
+        "#749f83",
+        "#ca8622",
+        "#bda29a",
+        "#6e7074",
+        "#546570",
+        "#c4ccd3",
+        "#f05b72",
+        "#ef5b9c",
+        "#f47920",
+        "#905a3d",
+        "#fab27b",
+        "#2a5caa",
+        "#444693",
+        "#726930",
+        "#b2d235",
+        "#6d8346",
+        "#ac6767",
+        "#1d953f",
+        "#6950a1",
+        "#918597"
+    ],
+    "series": [
+        {
+            "type": "map",
+            "name": "\u6b7b\u4ea1\u4eba\u6570",
+            "label": {
+                "show": true,
+                "position": "top",
+                "margin": 8
+            },
+            "mapType": "world",
+            "data": [
+                {
+                    "name": "Tunisia",
+                    "value": 28648
+                },
+                {
+                    "name": "Ethiopia",
+                    "value": 16101
+                },
+                {
+                    "name": "China",
+                    "value": 18787
+                },
+                {
+                    "name": "Japan",
+                    "value": 18433
+                },
+                {
+                    "name": "Thailand",
+                    "value": 30337
+                },
+                {
+                    "name": "Singapore",
+                    "value": 1397
+                },
+                {
+                    "name": "Korea",
+                    "value": 24371
+                },
+                {
+                    "name": "Australia",
+                    "value": 9047
+                },
+                {
+                    "name": "Germany",
+                    "value": 140183
+                },
+                {
+                    "name": "United States",
+                    "value": 1035847
+                },
+                {
+                    "name": "Malaysia",
+                    "value": 35712
+                },
+                {
+                    "name": "Vietnam",
+                    "value": 43083
+                },
+                {
+                    "name": "Canada",
+                    "value": 41519
+                },
+                {
+                    "name": "India",
+                    "value": 524771
+                },
+                {
+                    "name": "United Kingdom",
+                    "value": 179217
+                },
+                {
+                    "name": "Italy",
+                    "value": 167391
+                },
+                {
+                    "name": "Russia",
+                    "value": 380020
+                },
+                {
+                    "name": "Philippines",
+                    "value": 60461
+                },
+                {
+                    "name": "Ethiopia",
+                    "value": 7516
+                },
+                {
+                    "name": "Mexico",
+                    "value": 325186
+                }
+            ],
+            "roam": true,
+            "aspectScale": 0.75,
+            "nameProperty": "name",
+            "selectedMode": false,
+            "zoom": 1,
+            "mapValueCalculation": "sum",
+            "showLegendSymbol": false,
+            "emphasis": {}
+        }
+    ],
+    "legend": [
+        {
+            "data": [
+                "\u6b7b\u4ea1\u4eba\u6570"
+            ],
+            "selected": {
+                "\u6b7b\u4ea1\u4eba\u6570": true
+            },
+            "show": true,
+            "padding": 5,
+            "itemGap": 10,
+            "itemWidth": 25,
+            "itemHeight": 14
+        }
+    ],
+    "tooltip": {
+        "show": true,
+        "trigger": "item",
+        "triggerOn": "mousemove|click",
+        "axisPointer": {
+            "type": "line"
+        },
+        "showContent": true,
+        "alwaysShowContent": false,
+        "showDelay": 0,
+        "hideDelay": 100,
+        "textStyle": {
+            "fontSize": 14
+        },
+        "borderWidth": 0,
+        "padding": 5
+    },
+    "title": [
+        {
+            "text": "2022\u5e7406\u670813\u65e5\u4e16\u754c\u65b0\u51a0\u6b7b\u4ea1\u4eba\u6570\u53ef\u89c6\u5316",
+            "padding": 5,
+            "itemGap": 10
+        }
+    ],
+    "visualMap": {
+        "show": true,
+        "type": "piecewise",
+        "min": null,
+        "max": null,
+        "text": [
+            "High",
+            "Low"
+        ],
+        "inRange": {
+            "color": [
+                "#50a3ba",
+                "#eac763",
+                "#d94e5d"
+            ]
+        },
+        "calculable": true,
+        "inverse": false,
+        "splitNumber": 5,
+        "orient": "vertical",
+        "showLabel": true,
+        "itemWidth": 20,
+        "itemHeight": 14,
+        "borderWidth": 0,
+        "pieces": [
+            {
+                "min": 0,
+                "max": 100,
+                "label": "<100"
+            },
+            {
+                "min": 100,
+                "max": 500,
+                "label": "100 - 500"
+            },
+            {
+                "min": 500,
+                "max": 1000,
+                "label": "500 - 1000"
+            },
+            {
+                "min": 1000,
+                "max": 10000,
+                "label": "1000 - 10000"
+            },
+            {
+                "min": 10000,
+                "max": 20000,
+                "label": "10000 - 20000"
+            },
+            {
+                "min": 20000,
+                "label": "> 500"
+            }
+        ]
+    }
+};
+        chart_b3da9bc10cd042438f013f58fe019736.setOption(option_b3da9bc10cd042438f013f58fe019736);
+    </script>
+</body>
+</html>
