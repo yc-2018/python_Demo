@@ -15,12 +15,17 @@ def sound(word):
     content = requests.get(url).content
     with open(getName(word), "bw") as mp3:
         mp3.write(content)
-
-    # 第三方库播放-写完还马上读不了，垃圾第三方库
-    time.sleep(0.5)
-    playsound(getName(word))
-    # 调用默认播放器播放
-    # os.system(f"{english}.mp3")
+        mp3.close()
+    while True:
+        try:
+            # 第三方库播放-写完还马上读不了，垃圾第三方库,有时读不了就调用系统的
+            time.sleep(0.5)
+            playsound(getName(word))
+        except Exception:
+            # 调用默认播放器播放
+            os.system(getName(word))
+        if input("——————输入0重新播放音频，直接回车退出——————") != '0':
+            break
 
 
 def getName(words):
@@ -62,12 +67,12 @@ if __name__ == '__main__':
 
     # english = input("输入英语")     # 没办法处理多行的
     print("***运行前应该先复制要翻译的值到剪贴板，运行时会自动获取剪贴板的值进行翻译***")
-    english = pyperclip.paste()     # 读取剪贴板内容
-    print("剪贴板内容为："+english)
+    english = pyperclip.paste()  # 读取剪贴板内容
+    print("剪贴板内容为：" + english)
 
     if not os.path.exists('sound'):
-        os.mkdir('sound')           # 创建文件夹
-    os.chdir('sound')               # 设置当前路径
+        os.mkdir('sound')  # 创建文件夹
+    os.chdir('sound')  # 设置当前路径
 
     try:
         show_word()
@@ -76,5 +81,3 @@ if __name__ == '__main__':
 
     # 输出音频
     sound(english)
-
-input()
