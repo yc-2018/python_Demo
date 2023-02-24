@@ -1,8 +1,10 @@
 # By：仰晨
 # 文件名：有声翻译
-# 时 间：2023/2/23 22:20----真他妈的够了2023.2.24 2：51明天早课----2023.2.24 15:30他妈的还得是360翻译
+# 时 间：2023/2/23 22:20----真他妈的够了2023.2.24 2：51明天早课----2023.2.24 15:30他妈的还得是360翻译----16:31他妈的多行不行就搞剪贴板
 import os
 import time
+
+import pyperclip
 import requests
 from playsound import playsound
 
@@ -11,14 +13,18 @@ def sound(word):
     url = f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web"
 
     content = requests.get(url).content
-    with open(f"{word}.mp3", "bw") as mp3:
+    with open(getName(word), "bw") as mp3:
         mp3.write(content)
 
     # 第三方库播放-写完还马上读不了，垃圾第三方库
     time.sleep(0.5)
-    playsound(f"{word}.mp3")
+    playsound(getName(word))
     # 调用默认播放器播放
     # os.system(f"{english}.mp3")
+
+
+def getName(words):
+    return words[:50].replace('\n', ' ') + '.mp3'  # 太长或换行都不行
 
 
 def show_word():
@@ -38,7 +44,8 @@ def show_word():
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.139 Safari/537.36",
         }
         print(
-            requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={english}",
+            requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={english}"
+                          .replace(' ', '+').replace('\n', '%0A'),
                           headers=headers).json()["data"]["fanyi"])
         # 因为百度的查询限制在38个汉字以内。
         # from lxml import etree
@@ -53,14 +60,14 @@ def show_word():
 
 if __name__ == '__main__':
 
-    english = input("输入英语")
+    # english = input("输入英语")     # 没办法处理多行的
+    print("***运行前应该先复制要翻译的值到剪贴板，运行时会自动获取剪贴板的值进行翻译***")
+    english = pyperclip.paste()     # 读取剪贴板内容
+    print("剪贴板内容为："+english)
 
-    try:
-        os.mkdir('sound')  # 创建文件夹
-    except FileExistsError:
-        pass
-    finally:
-        os.chdir('sound')  # 设置当前路径
+    if not os.path.exists('sound'):
+        os.mkdir('sound')           # 创建文件夹
+    os.chdir('sound')               # 设置当前路径
 
     try:
         show_word()
@@ -69,6 +76,5 @@ if __name__ == '__main__':
 
     # 输出音频
     sound(english)
-
 
 input()
