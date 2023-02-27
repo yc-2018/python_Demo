@@ -2,13 +2,16 @@
 # 文件名：有声翻译
 # 时 间：2023/2/23 22:20----真tm的够了2023.2.24 2：51明天早课----2023.2.24 15:30tm的还得是360翻译----16:31tm的多行不行就搞剪贴板
 import os
+import re
+# import time
 import threading
 
 import pyperclip
 import requests
-from playsound import playsound
+# from playsound import playsound
 # from pydub import audio_segment
 # from pydub.playback import play
+import pygame
 
 
 def sound(word):
@@ -17,9 +20,9 @@ def sound(word):
     content = requests.get(url).content
     with open(getName(word), "bw") as mp3:
         mp3.write(content)
-        mp3.close()
     while True:
         # time.sleep(0.5)
+        mp3.close()
         threading.Thread(target=play_mp3, args=(word,)).start()
         if input("——————输入0重新播放音频，直接回车退出——————") != '0':
             break
@@ -28,16 +31,20 @@ def sound(word):
 def play_mp3(word):
     try:
         # 第三方库播放-垃j第三方库,有时读不了就调用系统的
-        playsound(os.getcwd() + '\\' + getName(word))
+        # playsound(os.getcwd() + '\\' + getName(word))
+        pygame.init()
+        pygame.mixer.music.load(getName(word))  # 库大 但是 正常就行
+        pygame.mixer.music.play()
         # play(audio_segment.AudioSegment.from_mp3(file=os.getcwd() + '\\' + getName(word)))
     except Exception as e:
         # 调用默认播放器播放
-        print('报错了' + str(e))
+        print('第三方库播放发神经了：' + str(e))
         os.system(getName(word))
 
 
 def getName(words):
-    return words[:50].replace('\n', ' ') + '.mp3'  # 太长或换行都不行
+    # 文件名中不允许使用的符号有：  /  \  ?  *  :  |  "  <  >
+    return re.sub(r'[/\\?\r\n*:|"<>]', ' ', words[:50]) + '.mp3'  # 太长或换行也不行
 
 
 def show_word():
