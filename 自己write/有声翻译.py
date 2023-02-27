@@ -1,12 +1,14 @@
 # By：仰晨
 # 文件名：有声翻译
-# 时 间：2023/2/23 22:20----真他妈的够了2023.2.24 2：51明天早课----2023.2.24 15:30他妈的还得是360翻译----16:31他妈的多行不行就搞剪贴板
+# 时 间：2023/2/23 22:20----真tm的够了2023.2.24 2：51明天早课----2023.2.24 15:30tm的还得是360翻译----16:31tm的多行不行就搞剪贴板
 import os
-import time
+import threading
 
 import pyperclip
 import requests
 from playsound import playsound
+# from pydub import audio_segment
+# from pydub.playback import play
 
 
 def sound(word):
@@ -17,15 +19,21 @@ def sound(word):
         mp3.write(content)
         mp3.close()
     while True:
-        try:
-            # 第三方库播放-写完还马上读不了，垃圾第三方库,有时读不了就调用系统的
-            time.sleep(0.5)
-            playsound(getName(word))
-        except Exception:
-            # 调用默认播放器播放
-            os.system(getName(word))
+        # time.sleep(0.5)
+        threading.Thread(target=play_mp3, args=(word,)).start()
         if input("——————输入0重新播放音频，直接回车退出——————") != '0':
             break
+
+
+def play_mp3(word):
+    try:
+        # 第三方库播放-垃j第三方库,有时读不了就调用系统的
+        playsound(os.getcwd() + '\\' + getName(word))
+        # play(audio_segment.AudioSegment.from_mp3(file=os.getcwd() + '\\' + getName(word)))
+    except Exception as e:
+        # 调用默认播放器播放
+        print('报错了' + str(e))
+        os.system(getName(word))
 
 
 def getName(words):
@@ -46,21 +54,13 @@ def show_word():
             "sec-fetch-dest": "empty",
             "ec-fetch-mode": "cors",
             "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.139 Safari/537.36",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/98.0.4758.139 Safari/537.36",
         }
         print(
             requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={english}"
                           .replace(' ', '+').replace('\n', '%0A'),
                           headers=headers).json()["data"]["fanyi"])
-        # 因为百度的查询限制在38个汉字以内。
-        # from lxml import etree
-        # headers = {"User-Agent": "Mozilla/5.1 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0"}
-        # try:
-        #     html = requests.get(f"https://www.sogou.com/web?query=翻译{english}", headers=headers).text
-        #     print(etree.HTML(html).xpath("//dd[@id]//span")[0].text)
-        # except Exception:
-        #     html = requests.get(f"https://www.baidu.com/s?ie=utf-8&wd=翻译{english}", headers=headers).text
-        #     print(etree.HTML(html).xpath("//div[@class='op_sp_fanyi']//p[class='op_sp_fanyi_line_two']")[0].text)
 
 
 if __name__ == '__main__':
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     try:
         show_word()
     except IndexError:
-        print("-----连360翻译都失败了-----")
+        print("-----连360都失败了-----")
 
     # 输出音频
     sound(english)
