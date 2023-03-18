@@ -5,10 +5,12 @@
 #            3.5 22:24-----大优化cmd窗口+esc关闭&输入其他英语继续翻译&判断如果剪贴板文字为空就让自行输入&其他小优化
 #            3.12 16:04----剪贴板内容if包含驼峰命名then拆分成多个单词
 #                 16:23----音频文件不缓存了，删掉了1️⃣文件名字方法2️⃣专门多线程播放声音的方法3️⃣去除为缓存文件创建一个文件夹设置为工作路径
+#            3.19 04:06----有时候翻译很长的自动播放音频好吵，如果太长了刚开始就不读了按0再读,短的还是自动播放
+
 
 import re
 
-import pyperclip    # 读取剪贴板
+import pyperclip  # 读取剪贴板
 import requests
 # 播放声音
 from io import BytesIO
@@ -16,7 +18,7 @@ import sounddevice as sd
 import soundfile as sf
 # 关闭当前窗口 只对cmd窗口有效
 import keyboard
-import ctypes       # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
+import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
 
 
 # 关闭当前窗口 只对cmd窗口有效
@@ -26,14 +28,19 @@ def on_key_event(event):
         ctypes.windll.user32.SendMessageW(hwnd, 0x0010, 0, 0)
 
 
-# 把英语声音拿到内存 并调用播放
+# 把英语声音拿到内存 并调用播放   如果太长了刚开始就不读了按0再读
 def sound(word):
     mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
+    count = 1   # 播放次数
     while True:
-        mp3.seek(0)  # 将指针重置为数据的开头
-        samples, fs = sf.read(mp3, dtype='float32')
-        sd.play(samples, fs)
-        input_why = input("——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n")
+        if count > 1 or word.count(" ") < 8:    # 包涵8个空格表示很长就第一次不读
+            mp3.seek(0)  # 将指针重置为数据的开头
+            samples, fs = sf.read(mp3, dtype='float32')
+            sd.play(samples, fs)
+            input_why = input("——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n")
+        else:
+            count += 1
+            input_why = input("——————该句太长 想播放请按0，直接回车或esc退出，输入其他英语继续翻译——————\n")
         if input_why != '0':
             return input_why
 
@@ -41,7 +48,7 @@ def sound(word):
 # 显示翻译内容
 def show_word(e):
     # 显示单词
-    print("翻译结果为:"+"——"*18)
+    print("翻译结果为:" + "——" * 18)
     try:
         print(requests.post("https://fanyi.baidu.com/sug", {"kw": e}).json()["data"][0]['v'])
     # 显示句子
@@ -64,7 +71,6 @@ def show_word(e):
 
 
 def main(english1=""):
-
     try:
         show_word(english1)
         # threading.Thread(target=show_word, args=(english1,)).start()  # 多线程但不喜欢排序混乱
@@ -80,12 +86,12 @@ def main(english1=""):
 if __name__ == '__main__':
     keyboard.on_press(on_key_event)  # 键盘监听esc就退出 关闭当前窗口 只对cmd窗口有效
     print("（程序要网，如果尝试几次都没输出翻译 那就是翻译api出现问题）剪贴板内容if包含驼峰命名then拆分成多个单词")
-    print("《优点：单个单词能有多个结果 《缺点：本程序只有英文翻译为中文，声音也必定播放")
+    print("《优点：单个单词能有多个结果,短句自动播放音频，长句按0再播放 \n《缺点：本程序只有英文翻译为中文，声音也必定播放")
     print("***运行前先复制要翻译的值到剪贴板，运行时会自动获取剪贴板的值进行翻译***")
     english = re.sub(r'(?<=[^A-Z\s])([A-Z])', r' \1', pyperclip.paste())  # 读取剪贴板内容  包含驼峰命名的就拆分成多个单词，如果输入没有驼峰命名就按原来的输出
     print("——" * 20)
     if english == "":
-        english = input("剪贴板文字为空，请先输入英文吧~")     # 没办法处理多行的
+        english = input("剪贴板文字为空，请先输入英文吧~")  # 没办法处理多行的
     else:
         print("剪贴板内容为：" + english)
 
