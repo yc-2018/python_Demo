@@ -26,7 +26,7 @@ def on_key_event(event):
         ctypes.windll.user32.SendMessageW(hwnd, 0x0010, 0, 0)
 
 
-# 下载英语声音 并调用播放
+# 把英语声音拿到内存 并调用播放
 def sound(word):
     mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
     while True:
