@@ -7,6 +7,7 @@
 #                 16:23----音频文件不缓存了，删掉了1️⃣文件名字方法2️⃣专门多线程播放声音的方法3️⃣去除为缓存文件创建一个文件夹设置为工作路径
 #            3.19 04:06----有时候翻译很长的自动播放音频好吵，如果太长了刚开始就不读了按0再读,短的还是自动播放
 #                 23:57----判断剪贴板字符串是否包涵英文字母，不存在就重新输入（之前是为空才重新输入，（为空也是不包含英文））
+#            3.20 00:12----剪贴板内容if包涵下划线就替换为空格
 
 
 import re
@@ -32,16 +33,17 @@ def on_key_event(event):
 # 把英语声音拿到内存 并调用播放   如果太长了刚开始就不读了按0再读
 def sound(word):
     mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
-    count = 1   # 播放次数
+    count = False   # 播放次数
     while True:
-        if count > 1 or word.count(" ") < 8:    # 包涵8个空格表示很长就第一次不读
+        if count or word.count(" ") < 8:    # 包涵8个空格表示很长就第一次不读
             mp3.seek(0)  # 将指针重置为数据的开头
             samples, fs = sf.read(mp3, dtype='float32')
             sd.play(samples, fs)
             input_why = input("——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n")
         else:
-            count += 1
+            count = True
             input_why = input("——————该句太长 想播放请按0，直接回车或esc退出，输入其他英语继续翻译——————\n")
+
         if input_why != '0':
             return input_why
 
@@ -72,7 +74,9 @@ def show_word(e):
 
 
 def main(english1=""):
+
     try:
+        # 显示翻译内容
         show_word(english1)
         # threading.Thread(target=show_word, args=(english1,)).start()  # 多线程但不喜欢排序混乱
     except IndexError:
@@ -86,12 +90,13 @@ def main(english1=""):
 
 if __name__ == '__main__':
     keyboard.on_press(on_key_event)  # 键盘监听esc就退出 关闭当前窗口 只对cmd窗口有效
-    print("（程序要网，如果尝试几次都没输出翻译 那就是翻译api出现问题）剪贴板内容if包含驼峰命名then拆分成多个单词")
+    print("（程序要网，如果尝试几次都没输出翻译 那就是翻译api出现问题）剪贴板内容if包含驼峰命名then拆分成多个单词 包涵_就变成空格\n所以想翻译驼峰命名的或者下划线的要重新贴")
     print("《优点：单个单词能有多个结果,短句自动播放音频，长句按0再播放 \n《缺点：本程序只有英文翻译为中文，声音也必定播放")
     print("***运行前先复制要翻译的值到剪贴板，运行时会自动获取剪贴板的值进行翻译***")
-    english = re.sub(r'(?<=[^A-Z\s])([A-Z])', r' \1', pyperclip.paste())  # 读取剪贴板内容  包含驼峰命名的就拆分成多个单词，如果输入没有驼峰命名就按原来的输出
+    # 读取剪贴板内容  包含驼峰命名的就拆分成多个单词，包涵下划线就替换为空格 否则就按原来的输出
+    english = re.sub(r'(?<=[^A-Z\s])([A-Z])', r' \1', pyperclip.paste()).replace('_', ' ')
     print("——" * 20)
-    if bool(re.search(r'[a-zA-Z]', english)):
+    if not bool(re.search(r'[a-zA-Z]', english)):
         english = input("剪贴板内容不包含english，请先输入英文吧~")  # 没办法处理多行的，因为回车就向下执行了
     else:
         print("剪贴板内容为：" + english)
