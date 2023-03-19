@@ -33,15 +33,15 @@ def on_key_event(event):
 # 把英语声音拿到内存 并调用播放   如果太长了刚开始就不读了按0再读
 def sound(word):
     mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
-    count = False   # 播放次数
+    play_one = False   # 超长第一次？
     while True:
-        if count or word.count(" ") < 8:    # 包涵8个空格表示很长就第一次不读
+        if play_one or word.count(" ") < 8:    # 包涵8个空格表示很长就第一次不读
             mp3.seek(0)  # 将指针重置为数据的开头
             samples, fs = sf.read(mp3, dtype='float32')
             sd.play(samples, fs)
             input_why = input("——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n")
         else:
-            count = True
+            play_one = True
             input_why = input("——————该句太长 想播放请按0，直接回车或esc退出，输入其他英语继续翻译——————\n")
 
         if input_why != '0':
@@ -56,35 +56,34 @@ def show_word(e):
         print(requests.post("https://fanyi.baidu.com/sug", {"kw": e}).json()["data"][0]['v'])
     # 显示句子
     except IndexError:
-        headers = {
-            "accept-language": "zh-CN,zh;q=0.9",
-            "accept-encoding": "gzip, deflate, br",
-            "pro": "fanyi",
-            "sec-ch-ua-platform": "Windows",
-            "sec-fetch-dest": "empty",
-            "ec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/98.0.4758.139 Safari/537.36",
-        }
-        print(
-            requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={e}"
-                          .replace(' ', '+').replace('\n', '%0A'),
-                          headers=headers).json()["data"]["fanyi"])
+        try:
+            headers = {
+                "accept-language": "zh-CN,zh;q=0.9",
+                "accept-encoding": "gzip, deflate, br",
+                "pro": "fanyi",
+                "sec-ch-ua-platform": "Windows",
+                "sec-fetch-dest": "empty",
+                "ec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                              "Chrome/98.0.4758.139 Safari/537.36",
+            }
+            print(
+                requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={e}"
+                              .replace(' ', '+').replace('\n', '%0A'),
+                              headers=headers).json()["data"]["fanyi"])
+        except IndexError:
+            print("-----备用翻译也失败了-----")
 
 
 def main(english1=""):
-
-    try:
-        # 显示翻译内容
-        show_word(english1)
-        # threading.Thread(target=show_word, args=(english1,)).start()  # 多线程但不喜欢排序混乱
-    except IndexError:
-        print("-----连360都失败了-----")
+    # 显示翻译内容
+    show_word(english1)
+    # threading.Thread(target=show_word, args=(english1,)).start()  # 多线程但不喜欢排序混乱
 
     # 输出音频 并返回看看是否继续翻译
     english1 = sound(english1)
-    if not english1 == "":
+    if english1 != "":
         main(english1)
 
 
