@@ -35,18 +35,18 @@ def on_key_event(event):
 
 # 把英语声音拿到内存 并调用播放   如果太长了刚开始就不读了按0再读
 def sound(word):
-    mp3 = ""                 # 单个单词
+    mp3 = None               # 单个单词
     say = True               # 读句子
     play_one = False         # 超长第一次？
     engine = pyttsx3.init()  # 初始化语音引擎
     if re.match(r'^[a-zA-Z]+$', word):
-        say = False    # 包含空格（非单个单词）
-    else:
+        say = False    # （非全字母）
         mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
 
     while True:
         printf = "——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n"
         if say:  # 是否是句子
+            # print("是句子 启动本地引擎")
             if play_one or word.count(" ") < 8:  # 包涵8个空格表示很长就第一次不读
                 # 使用语音引擎朗读文本
                 engine.say(word)
@@ -56,6 +56,7 @@ def sound(word):
                 play_one = True
                 printf = "——————该句太长 想播放请按0，直接回车或esc退出，输入其他英语继续翻译——————\n"
         else:
+            # print("是单词 启动百度引擎")
             mp3.seek(0)  # 将指针重置为数据的开头
             samples, fs = sf.read(mp3, dtype='float32')
             sd.play(samples, fs)
