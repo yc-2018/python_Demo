@@ -1,5 +1,5 @@
 # By：仰晨
-# 文件名：图片空间
+# 文件名：图片空间(不止图片，音乐 视频都可以)
 # 时 间：2023/4/6 12:59  //+4.8...
 import os
 import os.path as op
@@ -63,8 +63,8 @@ def newName(image, rar):
 
 
 if __name__ == '__main__':
-    # 定义需要筛选的图片格式
-    img_s = (".png", ".jpg", ".gif", "jpeg", "jfif")
+    # 定义需要筛选的图片格式(其实视频 音乐 都可以
+    img_s = (".png", ".jpg", ".gif", "jpeg", "jfif", '.mp3', 'mp4')
     # 定义需要筛选的压缩包格式
     pack_s = (".zip", ".rar", ".7z", "tar", "gzip")
 
