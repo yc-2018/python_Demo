@@ -8,7 +8,7 @@ output = subprocess.run(['netsh', 'wlan', 'show', 'profiles'], capture_output=Tr
 wifis = [wifi.strip() for wifi in re.findall(r'所有用户配置文件\s*:\s*(.+)', output)]
 # print(wifis)
 
-print("▓▓▓wifi名▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓密码▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓")
+print("▓▓▓▓ wifi名▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 密码▓▓▓▓▓▓▓▓▓▓▓▓▓▓")
 for wifi in wifis:
     results = subprocess.run(['netsh', 'wlan', 'show', 'profile', wifi, 'key=clear'], capture_output=True).stdout.decode('gbk', errors='ignore').split('\\n')
     # print(results)
@@ -19,6 +19,6 @@ for wifi in wifis:
         password = None
 
     print("▓ "+f'{wifi.ljust(18, " ")}▓  {password}'.ljust(40, " ")+"▓")
-input("▓▓▓▓▓▓▓▓▓▓▓▓回车退出▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓")
+input("▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 回车退出▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n公众号：仰晨")
 
 
