@@ -22,7 +22,7 @@ def resize_gif(input_path, output_path, new_width):
                 pass
             new_height = int(frames[0].height * (new_width / frames[0].width))
             frames = [frame.resize((new_width, new_height), Image.Resampling.LANCZOS) for frame in frames]
-            frames[0].save(os.path.join(output_path, filename), save_all=True, append_images=frames[1:])
+            frames[0].save(os.path.join(output_path, filename.replace(".gif", "_new.gif")), save_all=True, append_images=frames[1:])
             print(f'完成{filename}...')
 
 
