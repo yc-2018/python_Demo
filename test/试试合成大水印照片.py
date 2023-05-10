@@ -2,25 +2,26 @@
 # 文件名：试试合成大水印照片
 # 时 间：2023/5/10 2:37
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import piexif
 
 # 读取图片和EXIF信息
-image_path = r"F:\T图像\新建文件夹\IMG_20201127_144025.jpg"
+image_path = r"E:\Users\Dell\Desktop\新建文件夹\IMG_20230509_195607.jpg"
 image = Image.open(image_path)
 exif_data = image.info.get("exif")
-# 获取原始EXIF数据
 data = piexif.load(exif_data)
 
+# 根据方向信息旋转图片
+orientation = data["0th"].get(piexif.ImageIFD.Orientation)
+if orientation is not None and orientation != 1:
+    print(orientation)
+    image = ImageOps.exif_transpose(image)
 # 获取图片尺寸
 width, height = image.size
-
 # 计算新图片高度
 new_height = int(height * 1.1)
-
 # 创建新的白色背景画布
 white_canvas = Image.new("RGB", (width, new_height), (255, 255, 255))
-
 # 将原始图片粘贴到新画布上
 white_canvas.paste(image, (0, 0))
 
@@ -75,6 +76,28 @@ add_text(data["0th"][piexif.ImageIFD.DateTime].decode('utf-8'), size=1.8, x=x_va
 x_value = add_text(f"{aperture} {shutter_speed} {iso}", size=2.3, x=9.5, y=3, font=r"C:\Windows\Fonts\msyhbd.ttc")
 # 拍摄位置
 add_text(f"{gps_N} {gps_E}", size=1.8, x=x_value, old_x=True, y=7)
+
+
+# 如果方向标记非1，则调整图像
+if orientation != 1:
+    # 根据方向标记旋转或翻转图像
+    if orientation == 2:
+        white_canvas = white_canvas.transpose(Image.FLIP_LEFT_RIGHT)
+    elif orientation == 3:
+        # 上下翻转
+        white_canvas = white_canvas.rotate(180)
+    elif orientation == 4:
+        white_canvas = white_canvas.transpose(Image.FLIP_TOP_BOTTOM)
+    elif orientation == 5:
+        white_canvas = white_canvas.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+    elif orientation == 6:
+        # 旋转
+        white_canvas = white_canvas.transpose(Image.ROTATE_90)
+    elif orientation == 7:
+        white_canvas = white_canvas.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+    elif orientation == 8:
+        white_canvas = white_canvas.rotate(90)
+
 
 # 保存图片（保留EXIF信息）
 white_canvas.save(r"E:\Users\Dell\Desktop\output.jpg", "JPEG", exif=exif_data)
