@@ -8,6 +8,11 @@ import os
 
 
 def add_watermark(jpg_file):
+    """
+    添加水印
+    :param jpg_file: 每张图片的路径
+    :return: 无（图片直接到本地）
+    """
     # 读取图片和EXIF信息
     image_path = os.path.join(jpg_file[0], jpg_file[1])
     image = Image.open(image_path)
@@ -24,22 +29,25 @@ def add_watermark(jpg_file):
     # 计算新图片高度
     new_height = int(height * 1.1)
     # 创建新的白色背景画布
-    white_canvas = Image.new("RGB", (width, new_height), (255, 255, 255))
+    canvas = Image.new("RGB", (width, new_height), (255, 255, 255))
     # 将原始图片粘贴到新画布上
-    white_canvas.paste(image, (0, 0))
+    canvas.paste(image, (0, 0))
+    # 获取新画布的宽高
+    canvas_width, canvas_height = canvas.size
 
     # 添加文字
-    def add_text(text, size, x, y, font=r"C:\Windows\Fonts\msyhl.ttc", old_x=False):
+    def add_text(text, size, x, y, font=r"C:\Windows\Fonts\msyhl.ttc", fill='black', old_x=False):
         """
         :param text: 要添加的文字
         :param size: 文字大小：按图片高的比例1很小，10和图片水印一样大
         :param x: 文字在水印的位置，0在最左边 10在最右边
-        :param old_x: 如果是True 表示传入的值是上次返回的，可以直接用的
         :param y: 文字在水印的位置，0在最上面 10在最下面
+        :param fill: 文字颜色 可接收参数格式：(255, 0, 0)# 红色、'#0000FF80'# 半透明蓝色、'black'、# 黑色、(128, 128, 128) # 中灰色
+        :param old_x: 如果是True 表示传入的值是上次返回的，可以直接用的
         :param font:字体文件路径:默认微软雅黑细体，机型和拍摄参数用微软雅黑粗体
         :return:x的值
         """
-        draw = ImageDraw.Draw(white_canvas)
+        draw = ImageDraw.Draw(canvas)
         text = text
         size = int(height * 0.01 * size)
         font = ImageFont.truetype(font, size=size)  # 请确保你有正确的字体文件路径"arial.ttf", size=20
@@ -47,8 +55,35 @@ def add_watermark(jpg_file):
         if not old_x:
             x = (width - text_width) * 0.1 * x
         y = height + ((new_height - height) - text_height) * 0.1 * y
-        draw.text((x, y), text, fill=(0, 0, 0), font=font)
+        draw.text((x, y), text, fill=fill, font=font)
         return x
+
+    # 加一竖
+    def add_line(x):
+        """
+        给水印图片和文字之间的分割线
+        :param x: 已经计算好的要贴在目标图片的x轴的坐标
+        :return:
+        """
+        # 创建一个10*240，颜色为#ddd的新图像 # 直接计算b_img缩放后的高度
+        line_width, line_height = int(canvas_height * 0.05 / 24), int(canvas_height * 0.05)
+        line_img_color = (204, 204, 204)
+        line_img = Image.new("RGB", (line_width, line_height), color=line_img_color)
+
+        # 粘贴b_img到a_img右下角
+        location = (int(x - line_img.size[0] * 5), int(canvas_height * 0.98 - line_img.size[1]))
+        canvas.paste(im=line_img, box=location)
+
+    def add_logo(x):
+        b_img = Image.open(r"mi.png")
+
+        # 计算b_img缩放后的高度 和 调整b_img大小
+        new_b_height = int(canvas_height * 0.05)
+        b_img = b_img.resize((int(b_img.width * new_b_height / b_img.height), new_b_height))
+
+        # 粘贴b_img到a_img右下角
+        location = (int(x - b_img.size[0]-b_img.size[0]*0.5), int(canvas_height * 0.98 - b_img.size[1]))
+        canvas.paste(im=b_img, box=location, mask=b_img)    # 参数“mask”来确保透明通道被正确应用,没有该参数透明就会变成黑色
 
     try:
         # 获取快门速度or曝光时间 [s]
@@ -71,11 +106,17 @@ def add_watermark(jpg_file):
         x_value = add_text(data["0th"][piexif.ImageIFD.Model].decode('utf-8'), size=2.4, x=0.35, y=2,
                            font=r"C:\Windows\Fonts\msyhbd.ttc")
         # 拍摄时间
-        add_text(data["0th"][piexif.ImageIFD.DateTime].decode('utf-8'), size=1.8, x=x_value, old_x=True, y=6.5)
+        add_text(data["0th"][piexif.ImageIFD.DateTime].decode('utf-8'), size=1.8, x=x_value, fill=(112, 112, 112), old_x=True, y=6.5)
         # 拍摄参数
-        x_value = add_text(f"{aperture} {shutter_speed} {iso}", size=2.3, x=9.5, y=3, font=r"C:\Windows\Fonts\msyhbd.ttc")
+        x_value = add_text(f"{aperture} {shutter_speed} {iso}", size=2.3, x=9.5, y=3,
+                           font=r"C:\Windows\Fonts\msyhbd.ttc")
         # 拍摄位置
-        add_text(f"{gps_N} {gps_E}", size=1.8, x=x_value, old_x=True, y=7)
+        add_text(f"{gps_N} {gps_E}", size=1.8, x=x_value, fill=(112, 112, 112), old_x=True, y=7)
+        # 分割线
+        add_line(x_value)
+        # logo
+        add_logo(x_value)
+
     except KeyError:
         print(jpg_file[1] + "获取的参数不全")
         return
@@ -84,32 +125,32 @@ def add_watermark(jpg_file):
     if orientation != 1:
         # 根据方向标记旋转或翻转图像
         if orientation == 2:
-            white_canvas = white_canvas.transpose(Image.FLIP_LEFT_RIGHT)
+            canvas = canvas.transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 3:
             # 上下翻转
-            white_canvas = white_canvas.rotate(180)
+            canvas = canvas.rotate(180)
         elif orientation == 4:
-            white_canvas = white_canvas.transpose(Image.FLIP_TOP_BOTTOM)
+            canvas = canvas.transpose(Image.FLIP_TOP_BOTTOM)
         elif orientation == 5:
-            white_canvas = white_canvas.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
+            canvas = canvas.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 6:
             # 旋转
-            white_canvas = white_canvas.transpose(Image.ROTATE_90)
+            canvas = canvas.transpose(Image.ROTATE_90)
         elif orientation == 7:
-            white_canvas = white_canvas.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
+            canvas = canvas.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 8:
-            white_canvas = white_canvas.rotate(90)
+            canvas = canvas.rotate(90)
 
     # 保存图片（保留EXIF信息）
-    white_canvas.save(os.path.join(jpg_file[0]+"加水印", jpg_file[1]), "JPEG", exif=exif_data)
+    canvas.save(os.path.join(jpg_file[0] + "加水印", jpg_file[1]), "JPEG", exif=exif_data)
 
 
 if __name__ == '__main__':
     folder_path = input('请输入文件夹路径')
     if os.path.isdir(folder_path):
         # 要新建文件夹？
-        if not os.path.isdir(folder_path+"加水印"):
-            os.mkdir(folder_path+"加水印")
+        if not os.path.isdir(folder_path + "加水印"):
+            os.mkdir(folder_path + "加水印")
         # 拿到文件夹下面的jpg文件直接调用方法
         [add_watermark([folder_path, f]) for f in os.listdir(folder_path) if f.endswith('.jpg')]
     else:
