@@ -51,7 +51,8 @@ def add_watermark(jpg_file):
         text = text
         size = int(height * 0.01 * size)
         font = ImageFont.truetype(font, size=size)  # 请确保你有正确的字体文件路径"arial.ttf", size=20
-        text_width, text_height = draw.textsize(text, font=font)
+        # textbbox() 方法返回一个包括文本四个顶点坐标的元组: (左侧x坐标,  顶部y坐标,  右侧x坐标,  底部y坐标)
+        _, _, text_width, text_height = draw.textbbox((x, y), text, font=font)
         if not old_x:
             x = (width - text_width) * 0.1 * x
         y = height + ((new_height - height) - text_height) * 0.1 * y
