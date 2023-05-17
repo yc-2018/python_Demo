@@ -142,7 +142,7 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False):
         # logo
         add_logo(x_value)
 
-    except KeyError as e:
+    except KeyError:
         print(jpg_file[1] + "获取的参数不全")
         return
 
@@ -183,8 +183,7 @@ if __name__ == '__main__':
         # 拿到文件夹下面的jpg文件直接调用方法
         [add_watermark([folder_path, f]) for f in os.listdir(folder_path) if f.endswith('.jpg')]
     # 是否是单个文件
-    elif os.path.isfile(folder_path):
-        if folder_path.endswith('.jpg'):
-            add_watermark([os.path.dirname(folder_path), os.path.basename(folder_path)], black=False, is_img=True, camera_name="Mi 11 Pro")
+    elif os.path.isfile(folder_path) and folder_path.endswith('.jpg'):
+        add_watermark([os.path.dirname(folder_path), os.path.basename(folder_path)], black=True, is_img=True, camera_name="Mi 11 Pro")
     else:
         print('路径有误')
