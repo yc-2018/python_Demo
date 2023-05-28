@@ -6,7 +6,8 @@ import re
 
 
 def cn(str1):
-    """面向win10 CMD->有中文会导致不能对齐 有一个中文就减少一个对齐的量"""
+    """面向win10 CMD->有中文会导致不能对齐 有一个中文就减少一个对齐的量
+    :param str1: WiFi名字或密码"""
     count = 0
     for char in str1:
         if '\u4e00' <= char <= '\u9fff':

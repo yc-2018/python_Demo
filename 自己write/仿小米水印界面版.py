@@ -239,6 +239,9 @@ class SimpleDemo(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        """
+        :param self.watermark_type: QComboBox 一个下拉列表框，用于选择水印类型。
+        """
         self.setWindowTitle('生成小米款大水印')
         self.resize(800, 400)
         # 设置窗口图标
@@ -247,10 +250,14 @@ class SimpleDemo(QWidget):
         main_layout = QVBoxLayout()         # 垂直布局，用于按从上到下的顺序排列控件，形成一列。
 
         # 创建第一行的下拉框和输入框
-        controls_layout = QHBoxLayout()     # 水平布局。它按从左到右的顺序排列控件，形成一行。当您将多个控件添加到 QHBoxLayout 中时，它们会在同一行内并排显示。
+        controls_layout = QHBoxLayout()
+        """:type: 
+        第一行==水平布局。它按从左到右的顺序排列控件，形成一行。当您将多个控件添加到 QHBoxLayout 中时，它们会在同一行内并排显示。"""
 
         # 相机水印颜色--下拉框
         self.watermark_type = QComboBox(self)
+        """:type: QComboBox
+        一个下拉列表框，用于选择水印类型。"""
         self.watermark_type.addItems(['白色水印', '黑色水印'])
         controls_layout.addWidget(self.watermark_type)
 
