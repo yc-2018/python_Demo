@@ -9,6 +9,7 @@
 #                 23:57----判断剪贴板字符串是否包涵英文字母，不存在就重新输入（之前是为空才重新输入，（为空也是不包含英文））
 #            3.20 00:12----剪贴板内容if包涵下划线就替换为空格
 #            3.22 18:29----引入读文本库读句子，单词声音还是百度取 18:36 剪贴板的.也换为空格
+#            6.19 03:22----解决用网络代理就闪退问题
 
 
 import re
@@ -24,6 +25,15 @@ import pyttsx3
 # 关闭当前窗口 只对cmd窗口有效
 import keyboard
 import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
+# 使用网络出海会报错所以要拿到代理
+import os
+
+proxies = {
+    'http': os.environ.get('http_proxy'),
+    'https': os.environ.get('https_proxy'),
+}
+# print(proxies['http'])  # None
+# print(proxies['https']) # None
 
 
 # 关闭当前窗口 只对cmd窗口有效
@@ -35,13 +45,16 @@ def on_key_event(event):
 
 # 把英语声音拿到内存 并调用播放   如果太长了刚开始就不读了按0再读
 def sound(word):
-    mp3 = None               # 单个单词
-    say = True               # 读句子
-    play_one = False         # 超长第一次？
+    mp3 = None  # 单个单词
+    say = True  # 读句子
+    play_one = False  # 超长第一次？
     engine = pyttsx3.init()  # 初始化语音引擎
-    if re.match(r'^[a-zA-Z]+$', word):
-        say = False    # （非全字母）
-        mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
+    if re.match(r'^[a-zA-Z]+$', word):  # and proxies['http'] is None
+        try:
+            mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
+            say = False  # （非全字母）
+        except Exception:
+            pass
 
     while True:
         printf = "——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n"
@@ -56,10 +69,18 @@ def sound(word):
                 play_one = True
                 printf = "——————该句太长 想播放请按0，直接回车或esc退出，输入其他英语继续翻译——————\n"
         else:
-            # print("是单词 启动百度引擎")
-            mp3.seek(0)  # 将指针重置为数据的开头
-            samples, fs = sf.read(mp3, dtype='float32')
-            sd.play(samples, fs)
+            try:
+                # print("是单词 启动百度引擎")
+                mp3.seek(0)  # 将指针重置为数据的开头
+                samples, fs = sf.read(mp3, dtype='float32')
+                sd.play(samples, fs)
+            except:
+                print("********获取不到网络声音，读本地的********")
+                # 使用语音引擎朗读文本
+                engine.say(word)
+                # 运行语音引擎，等待文本朗读完成
+                engine.runAndWait()
+
         input_why = input(printf)
 
         if input_why != '0':
@@ -71,7 +92,7 @@ def show_word(e):
     # 显示单词
     print("翻译结果为:" + "——" * 18)
     try:
-        print(requests.post("https://fanyi.baidu.com/sug", {"kw": e}).json()["data"][0]['v'])
+        print(requests.post("https://fanyi.baidu.com/sug", {"kw": e}, proxies=proxies).json()["data"][0]['v'])
     # 显示句子
     except IndexError:
         try:
@@ -89,7 +110,7 @@ def show_word(e):
             print(
                 requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={e}"
                               .replace(' ', '+').replace('\n', '%0A'),
-                              headers=headers).json()["data"]["fanyi"])
+                              headers=headers, proxies=proxies).json()["data"]["fanyi"])
         except IndexError:
             print("-----备用翻译也失败了-----")
 
