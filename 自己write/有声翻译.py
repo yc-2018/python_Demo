@@ -10,6 +10,7 @@
 #            3.20 00:12----剪贴板内容if包涵下划线就替换为空格
 #            3.22 18:29----引入读文本库读句子，单词声音还是百度取 18:36 剪贴板的.也换为空格
 #            6.19 03:22----解决用网络代理就闪退问题
+#            6.19 09:37----明确不用代理
 
 
 import re
@@ -25,15 +26,13 @@ import pyttsx3
 # 关闭当前窗口 只对cmd窗口有效
 import keyboard
 import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
-# 使用网络出海会报错所以要拿到代理
-import os
 
+
+# 使用网络出海会报错所以要明确不要代理
 proxies = {
-    'http': os.environ.get('http_proxy'),
-    'https': os.environ.get('https_proxy'),
+    'http': None,
+    'https': None,
 }
-# print(proxies['http'])  # None
-# print(proxies['https']) # None
 
 
 # 关闭当前窗口 只对cmd窗口有效
@@ -49,7 +48,7 @@ def sound(word):
     say = True  # 读句子
     play_one = False  # 超长第一次？
     engine = pyttsx3.init()  # 初始化语音引擎
-    if re.match(r'^[a-zA-Z]+$', word):  # and proxies['http'] is None
+    if re.match(r'^[a-zA-Z]+$', word):
         try:
             mp3 = BytesIO(requests.get(f"https://fanyi.baidu.com/gettts?lan=en&text={word}&spd=3&source=web").content)
             say = False  # （非全字母）
