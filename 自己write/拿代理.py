@@ -7,6 +7,7 @@ import time
 import socket
 import json
 import os
+import subprocess
 
 
 def get_proxy_info(url):
@@ -81,6 +82,12 @@ def update_v2rayN_config(best_proxy, config_path):
     :param best_proxy: 延迟最低的代理信息字典
     :param config_path: v2rayN配置文件路径
     """
+    # 程序路径
+    exe_path = r"D:\green\v2rayN-Core\v2rayN.exe"
+
+    # 使用taskkill命令强制结束程序
+    os.system(f"taskkill /IM {os.path.basename(exe_path)} /F")
+
     with open(config_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
 
@@ -96,6 +103,8 @@ def update_v2rayN_config(best_proxy, config_path):
     #     config['outbounds'][0]['settings']['vnext'][0]['port'] = int(best_proxy['port'])
     #     config['outbounds'][0]['settings']['vnext'][0]['users'][0]['id'] = best_proxy['password']
     #     config['outbounds'][0]['settings']['vnext'][0]['users'][0]['security'] = best_proxy['method']
+
+    # guiNConfig.json
     config['vmess'][1]['address'] = best_proxy['ip']
     config['vmess'][1]['port'] = int(best_proxy['port'])
     config['vmess'][1]['id'] = best_proxy['password']
@@ -106,7 +115,9 @@ def update_v2rayN_config(best_proxy, config_path):
         json.dump(config, f, indent=2)
 
     # 如有必要，重启v2rayN
-    # os.system("path/to/v2rayN.exe restart")
+    # os.system(r"D:\green\v2rayN-Core\v2rayN.exe")
+    # 使用subprocess.Popen()启动程序，不等待其结束
+    subprocess.Popen(exe_path)
 
 
 def main():
