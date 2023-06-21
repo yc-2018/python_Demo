@@ -104,7 +104,7 @@ def update_v2rayN_config(best_proxy, config_path):
     #     config['outbounds'][0]['settings']['vnext'][0]['users'][0]['id'] = best_proxy['password']
     #     config['outbounds'][0]['settings']['vnext'][0]['users'][0]['security'] = best_proxy['method']
 
-    # guiNConfig.json
+    # 修改 guiNConfig.json
     config['vmess'][1]['address'] = best_proxy['ip']
     config['vmess'][1]['port'] = int(best_proxy['port'])
     config['vmess'][1]['id'] = best_proxy['password']
