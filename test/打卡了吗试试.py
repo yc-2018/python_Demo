@@ -85,9 +85,12 @@ def getDK(_id):
     }
 
     response = requests.request("POST", url, headers=headers, data=payload)
-    headers = response.headers
-    for key, value in headers.items():
-        print(f"{key}:{value}")
+
+    # 试试拿请求头
+    # headers = response.headers
+    # for key, value in headers.items():
+    #     print(f"{key}:{value}")
+
     json = response.json()
 
     print(f"{json['result']['records'][0]['employee_id'][1]}")
