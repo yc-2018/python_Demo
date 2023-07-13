@@ -5,6 +5,12 @@
 
 import requests
 
+# 使用网络出海会报错所以要明确代理用不用，如果不用就写None
+proxies = {
+    'http': "127.0.0.1:2334",
+    'https': "127.0.0.1:2334",
+}
+
 url = 'https://api.mymemory.translated.net/get'
 
 
@@ -13,7 +19,7 @@ def translate_text(text, target_language):
         'q': text,
         'langpair': f'en|{target_language}'
     }
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, proxies=proxies)
     return response.json()['responseData']['translatedText']
 
 
@@ -25,7 +31,7 @@ def translate_text(text, target_language):
 德语：de        日语：ja
 韩语：ko        意大利语：it
 """
-text = 'you'
+text = 'you is pig'
 target_language = 'zh'          # 翻译为中文
 translation = translate_text(text, target_language)
 print(translation)
