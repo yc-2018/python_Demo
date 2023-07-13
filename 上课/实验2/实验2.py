@@ -8,7 +8,7 @@ from sklearn import preprocessing
 data = pd.read_excel("demo2.xlsx", sheet_name=1)  # 读取数据，第二个表
 
 # 1111111111111111111111111111111111111111111111111111111111111111111111
-data['level'] = data['level'].replace(0, 'others')
+data['level'] = data['level'].replace(0, 'others')    # 将这一列中所有值为0的行替换为了字符串'others'。
 # print(data['level'])
 # -----------------
 # 获取LabelEncoder
