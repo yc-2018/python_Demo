@@ -5,9 +5,12 @@
 import requests
 
 from datetime import datetime
+from colorama import Fore, Style, init
 
-current_date = datetime.now().strftime('%Y-%m-%d')
+# 初始化colorama，使其在所有支持的平台上都能使用彩色输出
+init(convert=True)
 
+current_date = datetime.now().strftime('%Y-%m-%d')  # 当天时间
 
 def getDK(_id):
     import json
@@ -92,22 +95,27 @@ def getDK(_id):
     #     print(f"{key}:{value}")
 
     json = response.json()
-
-    print(f"{json['result']['records'][0]['employee_id'][1]}")
-    print(f"{json['result']['records'][0]['date']}")
-    print(f"早上签入{json['result']['records'][0]['punch_in_morning']}")
-    print(f"早上签出{json['result']['records'][0]['clock_out_morning']}")
-    print(f"中午签入{json['result']['records'][0]['punch_in_afternoon']}")
-    print(f"中午签出{json['result']['records'][0]['clock_out_afternoon']}")
-    print(f"晚上签入{json['result']['records'][0]['punch_in_evening']}")
-    print(f"晚上签出{json['result']['records'][0]['clock_out_evening']}")
-    # print(f"晚上签出{json['result']['records'][0]}")
+    try:
+        print(f"{json['result']['records'][0]['employee_id'][1]}")
+        print(f"{json['result']['records'][0]['date']}")
+        print(f"早上签入{json['result']['records'][0]['punch_in_morning']}")
+        print(f"早上签出{json['result']['records'][0]['clock_out_morning']}")
+        print(f"中午签入{json['result']['records'][0]['punch_in_afternoon']}")
+        print(f"中午签出{json['result']['records'][0]['clock_out_afternoon']}")
+        print(f"晚上签入{json['result']['records'][0]['punch_in_evening']}")
+        print(f"晚上签出{json['result']['records'][0]['clock_out_evening']}")
+        # print(f"晚上签出{json['result']['records'][0]}")
+    except IndexError:
+        print(Fore.RED + '还没打卡或工号不存在', end="")
+        print(Style.RESET_ALL)  # 重置颜色到默认设置
+        # print(f"{json}")
 
 
 getDK(19)
 
 while True:
-    _id = input('====================ikun几号====================')
+    _id = input('====================ikun几号====================')   # 重置颜色到默认设置
     if not _id:
         break
     getDK(_id)
+
