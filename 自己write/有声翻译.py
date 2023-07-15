@@ -12,6 +12,7 @@
 #            6.19 03:22----解决用网络代理就闪退问题
 #            6.19 09:37----明确不用代理
 #            6.15 14:13----优化：把多个连续的空格变成一个   .后面不为空白字符的.变成空格   导入URL编码（之前剪贴板多行有bug)
+#            6.15 15:10----优化：加颜色
 
 
 import re
@@ -27,8 +28,12 @@ import pyttsx3
 # 关闭当前窗口 只对cmd窗口有效
 import keyboard
 import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
-from urllib.parse import quote_plus    # URL编码
+from urllib.parse import quote_plus             # URL编码
+from colorama import Fore, Style, init, Back    # 输出颜色
 
+
+# 初始化colorama，使其在所有支持的平台上都能使用彩色输出
+init()  # pycharm不需要，cmd才要
 
 # 使用网络出海会报错所以要明确不要代理
 proxies = {
@@ -82,7 +87,9 @@ def sound(word):
                 # 运行语音引擎，等待文本朗读完成
                 engine.runAndWait()
 
+        print(Back.BLUE+Fore.WHITE+Style.BRIGHT)
         input_why = input(printf)
+        print(Style.RESET_ALL)
 
         if input_why != '0':
             return input_why
@@ -92,6 +99,7 @@ def sound(word):
 def show_word(e):
     # 显示单词
     print("翻译结果为:" + "——" * 18)
+    print(Fore.GREEN + Style.BRIGHT, end='')
     # print(f"@@@@@@@@@@@@@看看打印出来的是什么?----------------------------------{quote_plus(e)}")
 
     try:
@@ -144,6 +152,7 @@ if __name__ == '__main__':
     if not bool(re.search(r'[a-zA-Z]', english)):
         english = input("剪贴板内容不包含english，请先输入英文吧~")  # 没办法处理多行的，因为回车就向下执行了
     else:
-        print("剪贴板内容为：" + english)
+        print("剪贴板内容为：" + Fore.YELLOW + english)
+        print(Style.RESET_ALL, end="")
 
     main(english)
