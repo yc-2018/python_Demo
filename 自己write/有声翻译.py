@@ -11,6 +11,7 @@
 #            3.22 18:29----引入读文本库读句子，单词声音还是百度取 18:36 剪贴板的.也换为空格
 #            6.19 03:22----解决用网络代理就闪退问题
 #            6.19 09:37----明确不用代理
+#            6.15 14:13----优化：把多个连续的空格变成一个   .后面不为空白字符的.变成空格   导入URL编码（之前剪贴板多行有bug)
 
 
 import re
@@ -26,6 +27,7 @@ import pyttsx3
 # 关闭当前窗口 只对cmd窗口有效
 import keyboard
 import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
+from urllib.parse import quote_plus    # URL编码
 
 
 # 使用网络出海会报错所以要明确不要代理
@@ -90,6 +92,8 @@ def sound(word):
 def show_word(e):
     # 显示单词
     print("翻译结果为:" + "——" * 18)
+    # print(f"@@@@@@@@@@@@@看看打印出来的是什么?----------------------------------{quote_plus(e)}")
+
     try:
         print(requests.post("https://fanyi.baidu.com/sug", {"kw": e}, proxies=proxies).json()["data"][0]['v'])
     # 显示句子
@@ -106,10 +110,10 @@ def show_word(e):
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                               "Chrome/98.0.4758.139 Safari/537.36",
             }
-            print(
-                requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={e}"
-                              .replace(' ', '+').replace('\n', '%0A'),
-                              headers=headers, proxies=proxies).json()["data"]["fanyi"])
+
+            print(requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={quote_plus(e)}",
+                                headers=headers, proxies=proxies).json()["data"]["fanyi"])
+
         except IndexError:
             print("-----备用翻译也失败了-----")
 
@@ -131,7 +135,11 @@ if __name__ == '__main__':
     print("《优点：单个单词能有多个结果,短句自动播放音频，长句按0再播放 \n《缺点：本程序只有英文翻译为中文（中文翻译英文只有词可以），短的单词声音也必定播放")
     print("***运行前先复制要翻译的值到剪贴板，运行时会自动获取剪贴板的值进行翻译***")
     # 读取剪贴板内容  包含驼峰命名的就拆分成多个单词，包涵下划线就替换为空格 否则就按原来的输出
-    english = re.sub(r'(?<=[^A-Z\s])([A-Z])', r' \1', pyperclip.paste()).replace('_', ' ').replace('.', ' ')
+    english = re.sub(r'(?<=[^A-Z\s])([A-Z])', r' \1', pyperclip.paste()).replace('_', ' ')
+    # 把多个连续的空格变成一个
+    english = re.sub(r' +', ' ', english)
+    # .后面不为空白字符的.变成空格
+    english = re.sub(r'\.(?!\s)', ' ', english)
     print("——" * 20)
     if not bool(re.search(r'[a-zA-Z]', english)):
         english = input("剪贴板内容不包含english，请先输入英文吧~")  # 没办法处理多行的，因为回车就向下执行了
