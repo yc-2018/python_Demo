@@ -28,9 +28,8 @@ import pyttsx3
 # 关闭当前窗口 只对cmd窗口有效
 import keyboard
 import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
-from urllib.parse import quote_plus             # URL编码
-from colorama import Fore, Style, init, Back    # 输出颜色
-
+from urllib.parse import quote_plus  # URL编码
+from colorama import Fore, Style, init, Back  # 输出颜色
 
 # 初始化colorama，使其在所有支持的平台上都能使用彩色输出
 init()  # pycharm不需要，cmd才要
@@ -87,7 +86,7 @@ def sound(word):
                 # 运行语音引擎，等待文本朗读完成
                 engine.runAndWait()
 
-        print(Back.BLUE+Fore.WHITE+Style.BRIGHT)
+        print(Back.BLUE + Fore.WHITE + Style.BRIGHT)
         input_why = input(printf)
         print(Style.RESET_ALL)
 
@@ -119,8 +118,9 @@ def show_word(e):
                               "Chrome/98.0.4758.139 Safari/537.36",
             }
 
-            print(requests.post(url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={quote_plus(e)}",
-                                headers=headers, proxies=proxies).json()["data"]["fanyi"])
+            print(requests.post(
+                url=f"https://fanyi.so.com/index/search?eng=1&validate=&ignore_trans=0&query={quote_plus(e)}",
+                headers=headers, proxies=proxies).json()["data"]["fanyi"])
 
         except IndexError:
             print("-----备用翻译也失败了-----")

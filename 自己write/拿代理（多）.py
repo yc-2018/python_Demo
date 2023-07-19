@@ -1,6 +1,6 @@
 # By：仰晨
-# 文件名：拿代理
-# 时 间：2023/6/19 9:39
+# 文件名：哪代理（多）
+# 时 间：2023/7/15 16:17
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -26,11 +26,6 @@ def get_ip_country(ip):
 
 # 拿到代理信息列表
 def get_proxy_info(url):
-    """
-    从指定URL获取代理信息
-    :param url: 代理信息网页的URL
-    :return: 代理信息列表
-    """
     proxies = []
     response = requests.get(url, proxies={'http': None, 'https': None})
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -45,7 +40,6 @@ def get_proxy_info(url):
             'method': tds[2].text,
             'password': tds[3].text,
             'location': tds[4].text,
-            "name": f'{datetime.today().day}号_{get_ip_country(tds[0].text)}'
         }
         proxies.append(proxy)
 
@@ -53,51 +47,51 @@ def get_proxy_info(url):
     return proxies
 
 
+# 测试延迟
 def test_latency(proxy):
-    """
-    测试给定代理的延迟
-    :param proxy: 代理信息字典
-    :return: 延迟时间（以秒为单位）
-    """
+    # 记录当前时间作为开始时间
     start_time = time.time()
     try:
+        # 尝试创建一个连接到代理服务器的socket
+        # 如果在3秒内无法建立连接，将会抛出一个timeout异常
         sock = socket.create_connection((proxy['ip'], int(proxy['port'])), timeout=3)
+        # 连接建立成功，关闭socket
         sock.close()
+        # 计算从开始时间到现在所经过的时间，作为延迟
         latency = time.time() - start_time
     except (socket.timeout, ConnectionRefusedError, OSError):
+        # 如果在尝试建立连接时出现异常，将延迟设置为无限大
         latency = float('inf')
 
-    print(f"测试代理延迟:{latency}")
-    return latency
+    # 如果延迟不是无限大（即，能成功连接到代理服务器）
+    if latency != float('inf'):
+        # 将延迟转换为字符串，保留两位小数
+        latency_str = "{:.2f}".format(latency)
+        # 在代理的名称中添加日期、代理服务器所在国家和延迟信息
+        proxy['name'] = f'{datetime.today().day}号_{get_ip_country(proxy["ip"])}_{latency_str}s'
+        print(f"测试代理延迟:{latency}")
+        # 返回更新后的代理信息
+        return proxy
+    else:
+        # 如果不能成功连接到代理服务器，返回None
+        return None
 
 
-# 获取延迟最低的代理
-def get_best_proxy(proxies):
-    """
-    从给定的代理列表中找出延迟最低的代理
-    :param proxies: 代理信息列表
-    :return: 延迟最低的代理信息字典
-    """
-    best_latency = float('inf')
-    best_proxy = None
+# 获取全部有效代理
+def get_all_valid_proxies(proxies):
+    valid_proxies = []
 
     for proxy in proxies:
-        latency = test_latency(proxy)
-        if latency < best_latency:
-            best_latency = latency
-            best_proxy = proxy
+        latency_test_result = test_latency(proxy)
+        if latency_test_result is not None:
+            valid_proxies.append(latency_test_result)
 
-    print(f"获取延迟最低的代理:{best_proxy}")
-    return best_proxy
+    print(f"获取所有有效代理:{valid_proxies}")
+    return valid_proxies
 
 
 # 更新v2rayN配置文件
-def update_v2rayN_config(best_proxy, config_path):
-    """
-    使用给定的最佳代理信息更新v2rayN配置文件
-    :param best_proxy: 延迟最低的代理信息字典
-    :param config_path: v2rayN配置文件路径
-    """
+def update_v2rayN_config(valid_proxies, config_path):
     # 程序路径
     exe_path = r"D:\green\v2rayN-Core\v2rayN.exe"
 
@@ -108,18 +102,17 @@ def update_v2rayN_config(best_proxy, config_path):
         config = json.load(f)
 
     # 修改 guiNConfig.json
-    config['vmess'][4]['address'] = best_proxy['ip']
-    config['vmess'][4]['port'] = int(best_proxy['port'])
-    config['vmess'][4]['id'] = best_proxy['password']
-    config['vmess'][4]['security'] = best_proxy['method']
-    config['vmess'][4]['remarks'] = best_proxy['name']
+    for i, proxy in enumerate(valid_proxies, start=4):
+        config['vmess'][i]['address'] = proxy['ip']
+        config['vmess'][i]['port'] = int(proxy['port'])
+        config['vmess'][i]['id'] = proxy['password']
+        config['vmess'][i]['security'] = proxy['method']
+        config['vmess'][i]['remarks'] = proxy['name']
 
     # 将更新后的配置写回文件
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2)
 
-    # 如有必要，重启v2rayN
-    # os.system(r"D:\green\v2rayN-Core\v2rayN.exe")
     # 使用subprocess.Popen()启动程序，不等待其结束
     subprocess.Popen(exe_path)
 
@@ -129,8 +122,8 @@ def main():
     config_path = r"D:\green\v2rayN-Core\guiNConfig.json"
 
     proxies = get_proxy_info(url)
-    best_proxy = get_best_proxy(proxies)
-    update_v2rayN_config(best_proxy, config_path)
+    valid_proxies = get_all_valid_proxies(proxies)
+    update_v2rayN_config(valid_proxies, config_path)
 
 
 if __name__ == "__main__":
