@@ -6,11 +6,13 @@ import requests
 
 from datetime import datetime, timedelta
 from colorama import Fore, Style, init
+import time
 
 # 初始化colorama，使其在所有支持的平台上都能使用彩色输出init(convert=True)
 init()
 
 current_date = datetime.now().strftime('%Y-%m-%d')  # 当天时间
+cookie = "session_id=0c5d10baed2669a7805e9daacf2208c8fb4df17a"
 
 
 # 字符串转时间并加8个小时
@@ -89,7 +91,7 @@ def getDK(_id):
         }
     })
     headers = {
-        'Cookie': 'session_id=0c5d10baed2669a7805e9daacf2208c8fb4df17a',
+        'Cookie': cookie,
         'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
         'Content-Type': 'application/json',
         'Accept': '*/*',
@@ -177,7 +179,7 @@ def get_KQ(_id):
         }
     })
     headers = {
-        'Cookie': 'session_id=0c5d10baed2669a7805e9daacf2208c8fb4df17a',
+        'Cookie': cookie,
         'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
         'Content-Type': 'application/json',
         'Accept': '*/*',
@@ -192,18 +194,38 @@ def get_KQ(_id):
         # print(f"{response_json['result']['records']}")
         print(Fore.BLUE + Style.BRIGHT, end='')
         print(f"{response_json['result']['records'][0]['name']}  {response_json['result']['records'][0]['weekday']}")
-        print(f"最早打卡时间:{time8(response_json['result']['records'][0]['clock_in_time'])}")
-        print(f"最晚打卡时间:{time8(response_json['result']['records'][-1]['clock_in_time'])}")
+
+        # 生成表示今天9点的datetime对象
+        today_9_am = datetime.now().replace(hour=9, minute=0, second=0, microsecond=0)
+        # 生成表示今天晚上6点的datetime对象
+        today_6_pm = datetime.now().replace(hour=18, minute=0, second=0, microsecond=0)
+        # 当天最早打卡时间
+        time_up = time8(response_json['result']['records'][0]['clock_in_time'])
+        # 当天最晚打卡时间
+        time_down = time8(response_json['result']['records'][-1]['clock_in_time'])
+
+        if time_up > today_9_am:
+            print(Fore.YELLOW, end='')
+        else:
+            print(Fore.GREEN, end='')
+        print(f"最早打卡时间:{time_up}")
+
+        if time_down < today_6_pm:
+            print(Fore.YELLOW, end='')
+        else:
+            print(Fore.GREEN, end='')
+        print(f"最晚打卡时间:{time_down}")
     except:
-        print(Fore.RED + Style.BRIGHT + '还没打卡或工号不存在', end="")
+        # print(Fore.RED + Style.BRIGHT + '还没打卡或工号不存在')
+        print(Fore.RED + Style.BRIGHT + '没有权限看别人的咯') # 2023.7.20
     finally:
         print(Style.RESET_ALL, end='')  # 重置颜色到默认设置
 
 
 get_KQ(19)
-
-while True:
-    _id = input('====================ikun几号====================')  # 重置颜色到默认设置
-    if not _id:
-        break
-    get_KQ(_id)
+time.sleep(8)
+# while True:
+#     _id = input('====================ikun几号====================')  # 重置颜色到默认设置
+#     if not _id:
+#         break
+#     get_KQ(_id)
