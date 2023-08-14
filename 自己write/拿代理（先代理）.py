@@ -13,16 +13,18 @@ from datetime import datetime
 
 # 拿到ip的国家来备注
 def get_ip_country(ip):
-    url = f"https://www.bejson.com/Bejson/Api/Ip/getIp?ip={ip}"
-    headers = {
-        'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
-        'Accept': '*/*',
-        'Host': 'www.bejson.com',
-        'Connection': 'keep-alive'
-    }
-    response = requests.request("POST", url, headers=headers, proxies={'http': None, 'https': None})
-    return response.json()['data']['country']
-
+    try:
+        url = f"https://www.bejson.com/Bejson/Api/Ip/getIp?ip={ip}"
+        headers = {
+            'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+            'Accept': '*/*',
+            'Host': 'www.bejson.com',
+            'Connection': 'keep-alive'
+        }
+        response = requests.request("POST", url, headers=headers, proxies={'http': None, 'https': None})
+        return response.json()['data']['country']
+    except:
+        return "未知"
 
 # 拿到代理信息列表
 def get_proxy_info(url):
