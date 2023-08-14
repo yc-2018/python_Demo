@@ -11,23 +11,29 @@
 #            3.22 18:29----引入读文本库读句子，单词声音还是百度取 18:36 剪贴板的.也换为空格
 #            6.19 03:22----解决用网络代理就闪退问题
 #            6.19 09:37----明确不用代理
-#            6.15 14:13----优化：把多个连续的空格变成一个   .后面不为空白字符的.变成空格   导入URL编码（之前剪贴板多行有bug)
-#            6.15 15:10----优化：加颜色
+#            7.15 14:13----优化：把多个连续的空格变成一个   .后面不为空白字符的.变成空格   导入URL编码（之前剪贴板多行有bug)
+#                 15:10----优化：加颜色
+#            8.14 21:55----优化：cmd窗口按esc秒关，在pycharm也能秒关，但是没输入回车关闭响应慢了0.几秒
 
 
 import re
 
 import pyperclip  # 读取剪贴板
 import requests
+
 # 播放声音
 from io import BytesIO
 import sounddevice as sd
 import soundfile as sf
+
 # 读文字出声音模块
 import pyttsx3
-# 关闭当前窗口 只对cmd窗口有效
-import keyboard
-import ctypes  # Python 标准库中自带的模块,它提供了一种与 C 语言兼容的外部函数库的接口
+
+# 监控esc键按了就结束
+import threading
+from pynput import keyboard
+import time
+
 from urllib.parse import quote_plus  # URL编码
 from colorama import Fore, Style, init, Back  # 输出颜色
 
@@ -41,11 +47,19 @@ proxies = {
 }
 
 
-# 关闭当前窗口 只对cmd窗口有效
-def on_key_event(event):
-    if event.name == "esc":
-        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
-        ctypes.windll.user32.SendMessageW(hwnd, 0x0010, 0, 0)
+# 监控esc键，按下就报错
+def on_press(key):
+    # 检测ESC键是否被按下
+    if key == keyboard.Key.esc:
+        print("检测ESC键是否被按下 或者 翻译线程结束了...触发系统退出")
+        # 触发系统退出
+        # raise SystemExit(0)
+        raise "你干嘛哎呦"
+
+    # 线程数=2（主线程 翻译线程 监控线程 少了就是不行了，不然按回车监控线程还一直运行)
+    time.sleep(0.5)
+    if threading.active_count() == 2:
+        0/0
 
 
 # 把英语声音拿到内存 并调用播放   如果太长了刚开始就不读了按0再读
@@ -65,7 +79,7 @@ def sound(word):
         printf = "——————输入0重新播放音频，直接回车或esc退出，输入其他英语继续翻译——————\n"
         if say:  # 是否是句子
             # print("是句子 启动本地引擎")
-            if play_one or word.count(" ") < 8:  # 包涵8个空格表示很长就第一次不读
+            if play_one or word.count(" ") < 6:  # 包涵6个空格表示很长就第一次不读
                 # 使用语音引擎朗读文本
                 engine.say(word)
                 # 运行语音引擎，等待文本朗读完成
@@ -138,7 +152,6 @@ def main(english1=""):
 
 
 if __name__ == '__main__':
-    keyboard.on_press(on_key_event)  # 键盘监听esc就退出 关闭当前窗口 只对cmd窗口有效
     print("（程序要网，如果尝试几次都没输出翻译 那就是翻译api出现问题）剪贴板内容if包含驼峰命名then拆分成多个单词 包涵_就变成空格\n所以想翻译驼峰命名的或者下划线的要重新贴")
     print("《优点：单个单词能有多个结果,短句自动播放音频，长句按0再播放 \n《缺点：本程序只有英文翻译为中文（中文翻译英文只有词可以），短的单词声音也必定播放")
     print("***运行前先复制要翻译的值到剪贴板，运行时会自动获取剪贴板的值进行翻译***")
@@ -155,4 +168,10 @@ if __name__ == '__main__':
         print("剪贴板内容为：" + Fore.YELLOW + english)
         print(Style.RESET_ALL, end="")
 
-    main(english)
+    # 创建用户输入的线程
+    input_thread = threading.Thread(target=main, daemon=True, args={english})
+    input_thread.start()
+
+    # 创建键盘监听器--直到按esc结束
+    with keyboard.Listener(on_press=on_press) as listener:
+        listener.join()
