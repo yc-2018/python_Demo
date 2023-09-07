@@ -12,6 +12,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon   # logo图标
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+import requests
 import piexif
 import os
 
@@ -27,15 +28,17 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False, place="
     :param jpg_file: 每张图片的路径
     :return: 无（图片直接到本地）
     """
+
+    # 样式是黑色还是白色？
     background_color = (255, 255, 255) if not black else (0, 0, 0)
     fill_color = (0, 0, 0) if not black else (255, 255, 255)
     small_text_color = (134, 134, 134)if not black else (255, 255, 255)
 
     # 读取图片和EXIF信息
-    image_path = os.path.join(jpg_file[0], jpg_file[1])
-    image = Image.open(image_path)
-    exif_data = image.info.get("exif")
-    data = piexif.load(exif_data)
+    image_path = os.path.join(jpg_file[0], jpg_file[1])     # 图片路经
+    image = Image.open(image_path)                          # 读取图片
+    exif_data = image.info.get("exif")                      # EXIF信息
+    data = piexif.load(exif_data)                           # 解析 Exif 数据
 
     # 根据方向信息旋转图片
     orientation = data["0th"].get(piexif.ImageIFD.Orientation)
@@ -47,7 +50,7 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False, place="
     # 计算新图片高度 长度+11.5%
     new_height = int(height * 1.115)    # 还原竖屏
     # new_height = int(height * 1.156)  # 还原横屏
-    # 创建新的白色背景画布
+    # 创建新的背景画布
     canvas = Image.new("RGB", (width, new_height), background_color)
     # 将原始图片粘贴到新画布上
     canvas.paste(image, (0, 0))
@@ -68,7 +71,7 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False, place="
                     微软雅黑常规：C:\Windows\Fonts\msyh.ttc
                     机型和拍摄参数用微软雅黑粗体
                     黑体C:\Windows\Fonts\simhei.ttf是小米默认的但是间距很宽
-        :return:x的值
+        :return:x的值 ,x+图片宽=右上角的值
         """
         draw = ImageDraw.Draw(canvas)
         text = text
@@ -80,7 +83,7 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False, place="
             x = (width - text_width) * 0.1 * x
         y = height + ((new_height - height) - text_height) * 0.1 * y
         draw.text((x, y), text, fill=fill, font=font)
-        return x
+        return x, text_width
 
     # 加一竖
     def add_line(x):
@@ -125,29 +128,73 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False, place="
 
         def get_gps():
             """
-            获取拍摄位置
-            :return: 如果有就返回gps位置，没有就写字
+            获取拍摄
+            :return: 如果有就返回gps位置，没有就写字,和 布尔值(用来判断是否api获取区域位置)
             """
             try:
                 gps_N = data['GPS'][2]
                 gps_N = f"{gps_N[0][0] / gps_N[0][1]:02.0f}°{int(gps_N[1][0] / gps_N[1][1])}\'{int(gps_N[2][0] / gps_N[2][1])}\"N"
                 gps_E = data['GPS'][4]
                 gps_E = f"{gps_E[0][0] / gps_E[0][1]:02.0f}°{int(gps_E[1][0] / gps_E[1][1])}\'{int(gps_E[2][0] / gps_E[2][1])}\"E"
-                return f"{gps_N}  {gps_E}"
+                return f"{gps_N}  {gps_E}", True
             except KeyError:
-                return place
+                return place, False
+
+        def get_addr():
+            """
+            高德api通过坐标获取区/县
+            :return: 返回 县/区
+            """
+            # 解析exif数据
+            gps_ifd = data['GPS']
+            lat = gps_ifd.get(2)          # 纬度
+            lon = gps_ifd.get(4)          # 经度
+
+            def conv_to_degress(value):
+                """将经纬度的值转换为度"""
+                d = float(value[0][0]) / float(value[0][1])
+                m = float(value[1][0]) / float(value[1][1])
+                s = float(value[2][0]) / float(value[2][1])
+                return d + (m / 60.0) + (s / 3600.0)
+
+            lat = conv_to_degress(lat)      # 23.166649999999997
+            lon = conv_to_degress(lon)      # 113.29241388888889
+
+            try:
+                # 开始高德api
+                url = f"https://www.amap.com/service/regeo?longitude={lon}&latitude={lat}"
+                headers = {
+                    'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+                    'Accept': '*/*',
+                    'Host': 'www.amap.com',
+                    'Connection': 'keep-alive'
+                }
+                response = requests.request("GET", url, headers=headers, proxies={'http': None, 'https': None}).json()
+                district = response["data"]["district"]     # 区，县
+                addr = district if district != "" else response["data"]['city']
+                if addr[-1] in ['市', '县', '区']:
+                    addr = addr[:-1]
+                return f"  | {addr}"
+            except Exception:
+                return ""
 
         # 机型
         x_value = add_text(data["0th"][piexif.ImageIFD.Model].decode('utf-8') if camera_name is None else camera_name,
-                           size=2.1, x=0.35, y=3, font=r"C:\Windows\Fonts\msyhbd.ttc")
+                           size=2.1, x=0.35, y=3, font=r"C:\Windows\Fonts\msyhbd.ttc")[0]
         # 拍摄时间
         add_text(data["0th"][piexif.ImageIFD.DateTime].decode('utf-8'), size=1.55, x=x_value, fill=small_text_color,
                  old_x=True, y=6.5)
+
         # 拍摄参数
         x_value = add_text(f"{aperture} {shutter_speed} {iso}", size=2.1, x=9.5, y=3.2,
-                           font=r"C:\Windows\Fonts\msyhbd.ttc")
-        # 拍摄位置
-        add_text(get_gps(), size=1.55, x=x_value, fill=small_text_color, old_x=True, y=6.7)
+                           font=r"C:\Windows\Fonts\msyhbd.ttc")[0]
+
+        gps = get_gps()
+        # 拍摄坐标
+        right_x_value = add_text(gps[0], size=1.55, x=x_value, fill=small_text_color, old_x=True, y=6.7)[1]
+        # 拍摄位置(放到坐标后面)
+        add_text(get_addr(), size=0.95, x=right_x_value, fill=small_text_color, old_x=True, y=7) if gps[1] else ''
+
         # 分割线
         add_line(x_value)
         # logo
@@ -182,6 +229,7 @@ def add_watermark(jpg_file, camera_name=None, black=False, is_img=False, place="
         canvas.save(os.path.join(jpg_file[0], jpg_file[1].replace('.jpg', '-加水印.jpg')), "JPEG", exif=exif_data)
     else:
         canvas.save(os.path.join(jpg_file[0] + "加水印", jpg_file[1]), "JPEG", exif=exif_data)
+    print(f'完成:{jpg_file[1]}')
 # ---------------------------------------------------------------------------------------------------
 
 
@@ -231,6 +279,7 @@ class FileDropLabel(QLabel):
                     add_watermark([os.path.dirname(path), os.path.basename(path)], black=black, logo=logo, camera_name=camera_name, place=place, is_img=True)
                 else:
                     print('路径有误')
+                print('***运行完成***')
 
 
 class SimpleDemo(QWidget):
