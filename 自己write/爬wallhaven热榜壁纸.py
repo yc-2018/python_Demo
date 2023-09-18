@@ -16,7 +16,7 @@ def get_img_list(page):
 
 
 # 发送到motrix进行下载
-def send_motrix_download(page, filename, save_path, index):
+def send_motrix_download(filename, save_path):
     data = {
         'id': 1,
         'jsonrpc': '2.0',
@@ -24,7 +24,7 @@ def send_motrix_download(page, filename, save_path, index):
         'params': ['token:ikun666', [url], {'dir': save_path, "out": filename, "max-connection-per-server": "16"}]
     }
     response = requests.post('http://localhost:16800/jsonrpc', json=data)
-    print(f"{page}-{index}_.{response.json()}")  # 输出HTTP响应内容
+    print(f"{filename}\t{response.json()}")  # 输出HTTP响应内容
 
 
 if __name__ == '__main__':
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     for page_ in range(start_page, end_page+1):
         i = 1
         for url in get_img_list(page_):                     # 获取一页的壁纸URL 遍历
-            name = f"{page_}-{i}_.{url.split('.')[-1]}"
+            name = f"{page_}-{i}.{url.split('.')[-1]}"
             path = r'E:\Users\Dell\Desktop\新建文件夹'
-            send_motrix_download(page_, name, path, i)      # 发送到motrix进行下载
+            send_motrix_download(name, path)             # 发送到motrix进行下载
             i += 1
