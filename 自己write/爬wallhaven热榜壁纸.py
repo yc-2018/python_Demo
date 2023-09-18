@@ -4,25 +4,37 @@
 
 import requests
 from lxml import etree
-doc = requests.get("https://wallhaven.cc/toplist?page=10").text
-small_list = etree.HTML(doc).xpath("/html/body/main/div/section/ul/li")
-small_pic_list = [pic.xpath("./figure/@data-wallpaper-id")[0] for pic in small_list]
-pic_format_lst = ["png" if len(pic.xpath("./figure/div/span")) == 2 else "jpg" for pic in small_list]
-pic_url_list = [f"https://w.wallhaven.cc/full/{pic[:2]}/wallhaven-{pic}.{f}" for pic, f in zip(small_pic_list, pic_format_lst)]
 
-for url in pic_url_list:
-    filename = url.split('/')[-1].replace('wallhaven-', '')
-    save_path = r'E:\Users\Dell\Desktop\新建文件夹'
 
-    # 构建POST请求数据    token没开好像是可以为空，的看别人js脚本说加就必须要加在第一个 max-connection-per-server可不写  out可以不写
+# 获取一页的壁纸URL
+def get_img_list(page):
+    doc = requests.get(f"https://wallhaven.cc/toplist?page={page}").text
+    small_list = etree.HTML(doc).xpath("/html/body/main/div/section/ul/li")
+    small_pic_list = [pic.xpath("./figure/@data-wallpaper-id")[0] for pic in small_list]
+    pic_format_lst = ["png" if len(pic.xpath("./figure/div/span")) == 2 else "jpg" for pic in small_list]
+    return [f"https://w.wallhaven.cc/full/{pic[:2]}/wallhaven-{pic}.{f}" for pic, f in zip(small_pic_list, pic_format_lst)]
+
+
+# 发送到motrix进行下载
+def send_motrix_download(page, filename, save_path, index):
     data = {
+        'id': 1,
         'jsonrpc': '2.0',
-        'id': '1',
         'method': 'aria2.addUri',
-        'params': ['token:OTDbw1UqdUV5', [url], {'dir': save_path, "out": filename, "max-connection-per-server": "16"}]
+        'params': ['token:ikun666', [url], {'dir': save_path, "out": filename, "max-connection-per-server": "16"}]
     }
-    # 发送POST请求  , verify=True 表示开启 SSL 证书验证  没什么乱用   还是下载不了HTTPS协议的图片
     response = requests.post('http://localhost:16800/jsonrpc', json=data)
-    # 输出HTTP响应内容
-    print(response.json())
+    print(f"{page}-{index}_.{response.json()}")  # 输出HTTP响应内容
 
+
+if __name__ == '__main__':
+    start_page = int(input('从第几页开始爬'))
+    end_page = int(input('第几页结束'))
+
+    for page_ in range(start_page, end_page+1):
+        i = 1
+        for url in get_img_list(page_):                     # 获取一页的壁纸URL 遍历
+            name = f"{page_}-{i}_.{url.split('.')[-1]}"
+            path = r'E:\Users\Dell\Desktop\新建文件夹'
+            send_motrix_download(page_, name, path, i)      # 发送到motrix进行下载
+            i += 1
