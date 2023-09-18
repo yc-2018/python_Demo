@@ -3,7 +3,7 @@ import os
 import concurrent.futures
 
 
-def getImg(count, hero):
+def getImg(hero, count=1):
     while True:
         file_name = hero['cname'] + str(count) + ".jpg"  # 设置图片名
         if os.path.exists(file_name):  # 如果目录本来就有，就跳过
@@ -38,8 +38,7 @@ if __name__ == '__main__':
     # 创建一个最大线程数为8的线程池
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         for i in url_json:
-            a = 1
             # 提交任务到线程池
-            executor.submit(getImg, a, i)
+            executor.submit(getImg, i)
 
     print("主进程结束了@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")

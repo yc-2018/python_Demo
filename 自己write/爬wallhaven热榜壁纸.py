@@ -4,7 +4,7 @@
 
 import requests
 from lxml import etree
-doc = requests.get("https://wallhaven.cc/toplist?page=1").text
+doc = requests.get("https://wallhaven.cc/toplist?page=10").text
 small_list = etree.HTML(doc).xpath("/html/body/main/div/section/ul/li")
 small_pic_list = [pic.xpath("./figure/@data-wallpaper-id")[0] for pic in small_list]
 pic_format_lst = ["png" if len(pic.xpath("./figure/div/span")) == 2 else "jpg" for pic in small_list]

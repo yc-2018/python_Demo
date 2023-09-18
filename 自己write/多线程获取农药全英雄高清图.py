@@ -6,7 +6,8 @@ import requests
 import os
 
 
-def getImg(count, hero):
+def getImg(hero):
+    count = 1
     # 获取信号量以确保线程数不超过8
     semaphore.acquire()
 
@@ -47,10 +48,9 @@ if __name__ == '__main__':
     # 限制多线程使用最大值为8的BoundedSemaphore对象创建
     semaphore = threading.BoundedSemaphore(value=8)
 
-    for i in url_json:
-        a = 1
+    for hero_ in url_json:
         # 多线程开始
-        threading.Thread(name='i', target=getImg, args=(a, i)).start()    # daemon用来设置线程是否随主线程退出而退出。默认False,
+        threading.Thread(target=getImg, args=(hero_,)).start()    # daemon用来设置线程是否随主线程退出而退出。默认False,
 
     print("主进程结束了@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
